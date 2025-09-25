@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BullDozerForge - Craft Legendary Artifacts</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.2.2/web3.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a0033 50%, #2d1b69 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        .wallet-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .wallet-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-family: monospace;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
+            padding: 5px;
+        }
+
+        .tab {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+        }
+
+        .tab-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffd700;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .rarity-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .rarity-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .rarity-option:hover, .rarity-option.selected {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .rarity-common { color: #fff; }
+        .rarity-rare { color: #1e90ff; }
+        .rarity-epic { color: #9966cc; }
+        .rarity-legendary { color: #ff6b35; }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .quest-info {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #ffd700;
+            margin: 20px 0;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            border-left: 4px solid #ffd700;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            border-left-color: #ff4444;
+        }
+
+        .notification.success {
+            border-left-color: #44ff44;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars"></div>
+    
+    <div class="container">
+        <header class="header">
+            <h1>🐉 BullDozerForge</h1>
+            <p>Craft Legendary Artifacts with Mystical Aether</p>
+            
+            <div class="wallet-section">
+                <button id="connectWallet" class="btn">Connect Wallet</button>
+                <div id="walletInfo" class="wallet-info" style="display: none;"></div>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Your Artifacts</h3>
+                <div class="stat-value" id="userArtifacts">0</div>
+                <p>Total Artifacts Owned</p>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Available Aether</h3>
+                <div class="stat-value" id="userAether">0</div>
+                <p>Ready to Craft</p>
+            </div>
+            
+            <div class="stat-card">
+                <h3>BNB Balance</h3>
+                <div class="stat-value" id="userBalance">0</div>
+                <p>Your Wallet Balance</p>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Rarity Score</h3>
+                <div class="stat-value" id="rarityScore">0</div>
+                <p>Artifact Quality</p>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('craft')">⚒️ Craft</button>
+            <button class="tab" onclick="showTab('trade')">💰 Trade</button>
+            <button class="tab" onclick="showTab('quest')">🗡️ Quests</button>
+            <button class="tab" onclick="showTab('stats')">📊 Stats</button>
+        </div>
+
+        <div id="craftTab" class="tab-content active">
+            <h2>🔨 Craft Artifacts</h2>
+            <p>Use your Aether to craft powerful artifacts. Higher rarity costs more but generates more Aether!</p>
+            
+            <div class="form-group">
+                <label>Select Rarity:</label>
+                <div class="rarity-selector">
+                    <div class="rarity-option rarity-common selected" data-rarity="1">
+                        <h4>Common</h4>
+                        <p>1x Aether Gen</p>
+                        <small>864,000 Aether</small>
+                    </div>
+                    <div class="rarity-option rarity-rare" data-rarity="2">
+                        <h4>Rare</h4>
+                        <p>2x Aether Gen</p>
+                        <small>1,728,000 Aether</small>
+                    </div>
+                    <div class="rarity-option rarity-epic" data-rarity="5">
+                        <h4>Epic</h4>
+                        <p>5x Aether Gen</p>
+                        <small>4,320,000 Aether</small>
+                    </div>
+                    <div class="rarity-option rarity-legendary" data-rarity="10">
+                        <h4>Legendary</h4>
+                        <p>10x Aether Gen</p>
+                        <small>8,640,000 Aether</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Referral Address (Optional):</label>
+                <input type="text" id="referralAddress" placeholder="0x... (leave empty to use default)">
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn" onclick="craftArtifacts()">🔨 Craft Artifacts</button>
+            </div>
+        </div>
+
+        <div id="tradeTab" class="tab-content">
+            <h2>💰 Trade Aether</h2>
+            <p>Buy Aether with BNB or sell your Aether for BNB</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div>
+                    <h3>Buy Aether</h3>
+                    <div class="form-group">
+                        <label>BNB Amount:</label>
+                        <input type="number" id="buyAmount" placeholder="0.1" step="0.001">
+                    </div>
+                    <div class="form-group">
+                        <label>Referral Address:</label>
+                        <input type="text" id="buyReferral" placeholder="0x...">
+                    </div>
+                    <button class="btn" onclick="buyAether()">💎 Buy Aether</button>
+                    <p><small>Estimated Aether: <span id="estimatedAether">0</span></small></p>
+                </div>
+                
+                <div>
+                    <h3>Sell Aether</h3>
+                    <div class="form-group">
+                        <label>Available Aether:</label>
+                        <input type="text" id="availableAether" readonly>
+                    </div>
+                    <button class="btn" onclick="sellAether()">🏆 Sell Aether</button>
+                    <p><small>Estimated BNB: <span id="estimatedBNB">0</span></small></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="questTab" class="tab-content">
+            <h2>🗡️ Seasonal Quests</h2>
+            <p>Stake your artifacts in seasonal quests to earn rewards!</p>
+            
+            <div class="quest-info">
+                <h3>Current Season</h3>
+                <div class="timer" id="seasonTimer">Loading...</div>
+                <p>Total Prize Pool: <span id="prizePool">0</span> BNB</p>
+                <p>Your Quest Status: <span id="questStatus">Not Participating</span></p>
+            </div>
+            
+            <div class="form-group">
+                <label>Artifacts to Stake:</label>
+                <input type="number" id="stakeAmount" placeholder="Enter amount" min="1">
+            </div>
+            
+            <div class="form-group">
+                <label>Entry Fee (minimum 0.001 BNB):</label>
+                <input type="number" id="entryFee" placeholder="0.001" step="0.001" min="0.001">
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn" onclick="stakeArtifacts()">🛡️ Join Quest</button>
+                <button class="btn" onclick="claimRewards()">🏆 Claim Rewards</button>
+            </div>
+        </div>
+
+        <div id="statsTab" class="tab-content">
+            <h2>📊 Contract Statistics</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Contract Balance</h3>
+                    <div class="stat-value" id="contractBalance">0</div>
+                    <p>Total BNB in Contract</p>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>Market Aether</h3>
+                    <div class="stat-value" id="marketAether">0</div>
+                    <p>Total Market Supply</p>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>Staked Artifacts</h3>
+                    <div class="stat-value" id="stakedArtifacts">0</div>
+                    <p>Your Staked Amount</p>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>Last Craft</h3>
+                    <div class="stat-value" id="lastCraft">Never</div>
+                    <p>Time Since Last Craft</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+    <div id="loading" class="loading">⚡ Processing transaction...</div>
+
+    <script>
+        // Contract Configuration
+        const CONTRACT_ADDRESS = '0x158fC67619fd0a5b736Ca5e8E8b6f176ba797217';
+        const BSC_RPC = 'https://bsc-dataseed1.binance.org/';
+        
+        // Contract ABI (essential functions)
+        const CONTRACT_ABI = [
+            {"inputs": [], "name": "artifacts", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [], "name": "aetherBalance", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [], "name": "getMyArtifacts", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [], "name": "getMyAether", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [], "name": "getBalance", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [{"type": "address"}, {"type": "uint256"}], "name": "craftArtifacts", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+            {"inputs": [], "name": "sellAether", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+            {"inputs": [{"type": "address"}], "name": "buyAether", "outputs": [], "stateMutability": "payable", "type": "function"},
+            {"inputs": [{"type": "uint256"}], "name": "stakeArtifacts", "outputs": [], "stateMutability": "payable", "type": "function"},
+            {"inputs": [], "name": "claimQuestRewards", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+            {"inputs": [{"type": "uint256"}], "name": "calculateAetherSell", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [{"type": "uint256"}, {"type": "uint256"}], "name": "calculateAetherBuy", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [], "name": "marketAether", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [], "name": "seasonEndTime", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [], "name": "totalGoldStaked", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [{"type": "address"}], "name": "artifactRarityScore", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [{"type": "address"}], "name": "stakedArtifacts", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [{"type": "address"}], "name": "inSeasonalQuest", "outputs": [{"type": "bool"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [{"type": "address"}], "name": "lastCraft", "outputs": [{"type": "uint256"}], "stateMutability": "view", "type": "function"}
+        ];
+
+        // Global Variables
+        let web3;
+        let contract;
+        let userAccount;
+        let selectedRarity = 1;
+
+        // Initialize stars background
+        function createStars() {
+            const starsContainer = document.querySelector('.stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Initialize the app
+        async function init() {
+            createStars();
+            setupEventListeners();
+            await checkWalletConnection();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('connectWallet').addEventListener('click', connectWallet);
+            
+            // Rarity selector
+            document.querySelectorAll('.rarity-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.rarity-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedRarity = parseInt(this.dataset.rarity);
+                });
+            });
+
+            // Auto-update estimates
+            document.getElementById('buyAmount').addEventListener('input', updateBuyEstimate);
+        }
+
+        // Connect wallet
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    web3 = new Web3(window.ethereum);
+                    
+                    // Check network
+                    const chainId = await web3.eth.getChainId();
+                    if (chainId !== 56) {
+                        await switchToBSC();
+                    }
+                    
+                    const accounts = await web3.eth.getAccounts();
+                    userAccount = accounts[0];
+                    
+                    contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+                    
+                    updateWalletInfo();
+                    loadUserData();
+                    showNotification('Wallet connected successfully!', 'success');
+                    
+                } catch (error) {
+                    showNotification('Failed to connect wallet: ' + error.message, 'error');
+                }
+            } else {
+                showNotification('Please install MetaMask!', 'error');
+            }
+        }
+
+        // Switch to BSC network
+        async function switchToBSC() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x38' }]
+                });
+            } catch (error) {
+                if (error.code === 4902) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x38',
+                            chainName: 'BNB Smart Chain',
+                            rpcUrls: ['https://bsc-dataseed1.binance.org/'],
+                            nativeCurrency: {
+                                name: 'BNB',
+                                symbol: 'BNB',
+                                decimals: 18
+                            },
+                            blockExplorerUrls: ['https://bscscan.com/']
+                        }]
+                    });
+                }
+            }
+        }
+
+        // Check wallet connection on page load
+        async function checkWalletConnection() {
+            if (typeof window.ethereum !== 'undefined') {
+                web3 = new Web3(window.ethereum);
+                const accounts = await web3.eth.getAccounts();
+                if (accounts.length > 0) {
+                    userAccount = accounts[0];
+                    contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+                    updateWalletInfo();
+                    loadUserData();
+                }
+            }
+        }
+
+        // Update wallet info display
+        function updateWalletInfo() {
+            const walletInfo = document.getElementById('walletInfo');
+            const connectBtn = document.getElementById('connectWallet');
+            
+            if (userAccount) {
+                walletInfo.textContent = userAccount.substring(0, 6) + '...' + userAccount.substring(38);
+                walletInfo.style.display = 'block';
+                connectBtn.style.display = 'none';
+            }
+        }
+
+        // Load user data
+        async function loadUserData() {
+            if (!contract || !userAccount) return;
+
+            try {
+                const balance = await web3.eth.getBalance(userAccount);
+                const artifacts = await contract.methods.getMyArtifacts().call({ from: userAccount });
+                const aether = await contract.methods.getMyAether().call({ from: userAccount });
+                const rarityScore = await contract.methods.artifactRarityScore(userAccount).call();
+                const contractBalance = await contract.methods.getBalance().call();
+                const marketAether = await contract.methods.marketAether().call();
+                const stakedArtifacts = await contract.methods.stakedArtifacts(userAccount).call();
+                const lastCraft = await contract.methods.lastCraft(userAccount).call();
+                const seasonEndTime = await contract.methods.seasonEndTime().call();
+                const totalGoldStaked = await contract.methods.totalGoldStaked().call();
+                const inQuest = await contract.methods.inSeasonalQuest(userAccount).call();
+
+                // Update UI
+                document.getElementById('userBalance').textContent = parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(4) + ' BNB';
+                document.getElementById('userArtifacts').textContent = artifacts;
+                document.getElementById('userAether').textContent = Number(aether).toLocaleString();
+                document.getElementById('rarityScore').textContent = rarityScore;
+                document.getElementById('contractBalance').textContent = parseFloat(web3.utils.fromWei(contractBalance, 'ether')).toFixed(4) + ' BNB';
+                document.getElementById('marketAether').textContent = Number(marketAether).toLocaleString();
+                document.getElementById('stakedArtifacts').textContent = stakedArtifacts;
+                document.getElementById('availableAether').value = Number(aether).toLocaleString();
+                document.getElementById('prizePool').textContent = parseFloat(web3.utils.fromWei(totalGoldStaked, 'ether')).toFixed(4);
+                document.getElementById('questStatus').textContent = inQuest ? 'Participating' : 'Not Participating';
+                
+                // Update last craft time
+                const lastCraftTime = parseInt(lastCraft);
+                if (lastCraftTime > 0) {
+                    const timeDiff = Math.floor((Date.now() / 1000) - lastCraftTime);
+                    const hours = Math.floor(timeDiff / 3600);
+                    const minutes = Math.floor((timeDiff % 3600) / 60);
+                    document.getElementById('lastCraft').textContent = `${hours}h ${minutes}m ago`;
+                } else {
+                    document.getElementById('lastCraft').textContent = 'Never';
+                }
+
+                // Update season timer
+                updateSeasonTimer(parseInt(seasonEndTime));
+                
+                // Update estimates
+                updateBuyEstimate();
+                updateSellEstimate();
+
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                showNotification('Error loading data: ' + error.message, 'error');
+            }
+        }
+
+        // Update season timer
+        function updateSeasonTimer(endTime) {
+            const timer = document.getElementById('seasonTimer');
+            
+            function update() {
+                const now = Math.floor(Date.now() / 1000);
+                const timeLeft = endTime - now;
+                
+                if (timeLeft <= 0) {
+                    timer.textContent = 'Season Ended';
+                    return;
+                }
+                
+                const days = Math.floor(timeLeft / 86400);
+                const hours = Math.floor((timeLeft % 86400) / 3600);
+                const minutes = Math.floor((timeLeft % 3600) / 60);
+                const seconds = timeLeft % 60;
+                
+                timer.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            }
+            
+            update();
+            setInterval(update, 1000);
+        }
+
+        // Update buy estimate
+        async function updateBuyEstimate() {
+            if (!contract) return;
+            
+            const buyAmount = document.getElementById('buyAmount').value;
+            if (!buyAmount || buyAmount <= 0) {
+                document.getElementById('estimatedAether').textContent = '0';
+                return;
+            }
+            
+            try {
+                const contractBalance = await contract.methods.getBalance().call();
+                const weiAmount = web3.utils.toWei(buyAmount.toString(), 'ether');
+                const estimate = await contract.methods.calculateAetherBuy(weiAmount, contractBalance).call();
+                document.getElementById('estimatedAether').textContent = Number(estimate).toLocaleString();
+            } catch (error) {
+                document.getElementById('estimatedAether').textContent = '0';
+            }
+        }
+
+        // Update sell estimate
+        async function updateSellEstimate() {
+            if (!contract || !userAccount) return;
+            
+            try {
+                const aether = await contract.methods.getMyAether().call({ from: userAccount });
+                if (aether > 0) {
+                    const estimate = await contract.methods.calculateAetherSell(aether).call();
+                    const bnbEstimate = parseFloat(web3.utils.fromWei(estimate, 'ether')).toFixed(6);
+                    document.getElementById('estimatedBNB').textContent = bnbEstimate + ' BNB';
+                } else {
+                    document.getElementById('estimatedBNB').textContent = '0 BNB';
+                }
+            } catch (error) {
+                document.getElementById('estimatedBNB').textContent = '0 BNB';
+            }
+        }
+
+        // Craft artifacts
+        async function craftArtifacts() {
+            if (!contract || !userAccount) {
+                showNotification('Please connect your wallet first!', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                const referral = document.getElementById('referralAddress').value || '0x0000000000000000000000000000000000000000';
+                
+                const gasEstimate = await contract.methods.craftArtifacts(referral, selectedRarity).estimateGas({ from: userAccount });
+                
+                await contract.methods.craftArtifacts(referral, selectedRarity).send({
+                    from: userAccount,
+                    gas: Math.floor(gasEstimate * 1.2)
+                });
+                
+                showNotification('Artifacts crafted successfully! 🔨', 'success');
+                loadUserData();
+                
+            } catch (error) {
+                console.error('Craft error:', error);
+                showNotification('Failed to craft artifacts: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Buy Aether
+        async function buyAether() {
+            if (!contract || !userAccount) {
+                showNotification('Please connect your wallet first!', 'error');
+                return;
+            }
+
+            const buyAmount = document.getElementById('buyAmount').value;
+            const referral = document.getElementById('buyReferral').value || '0x0000000000000000000000000000000000000000';
+            
+            if (!buyAmount || buyAmount <= 0) {
+                showNotification('Please enter a valid BNB amount!', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                const weiAmount = web3.utils.toWei(buyAmount.toString(), 'ether');
+                const gasEstimate = await contract.methods.buyAether(referral).estimateGas({ 
+                    from: userAccount, 
+                    value: weiAmount 
+                });
+                
+                await contract.methods.buyAether(referral).send({
+                    from: userAccount,
+                    value: weiAmount,
+                    gas: Math.floor(gasEstimate * 1.2)
+                });
+                
+                showNotification('Aether purchased successfully! 💎', 'success');
+                loadUserData();
+                
+            } catch (error) {
+                console.error('Buy error:', error);
+                showNotification('Failed to buy Aether: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Sell Aether
+        async function sellAether() {
+            if (!contract || !userAccount) {
+                showNotification('Please connect your wallet first!', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                const aether = await contract.methods.getMyAether().call({ from: userAccount });
+                if (aether <= 0) {
+                    showNotification('You have no Aether to sell!', 'error');
+                    return;
+                }
+                
+                const gasEstimate = await contract.methods.sellAether().estimateGas({ from: userAccount });
+                
+                await contract.methods.sellAether().send({
+                    from: userAccount,
+                    gas: Math.floor(gasEstimate * 1.2)
+                });
+                
+                showNotification('Aether sold successfully! 🏆', 'success');
+                loadUserData();
+                
+            } catch (error) {
+                console.error('Sell error:', error);
+                showNotification('Failed to sell Aether: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Stake artifacts
+        async function stakeArtifacts() {
+            if (!contract || !userAccount) {
+                showNotification('Please connect your wallet first!', 'error');
+                return;
+            }
+
+            const stakeAmount = document.getElementById('stakeAmount').value;
+            const entryFee = document.getElementById('entryFee').value;
+            
+            if (!stakeAmount || stakeAmount <= 0) {
+                showNotification('Please enter a valid amount of artifacts to stake!', 'error');
+                return;
+            }
+            
+            if (!entryFee || entryFee < 0.001) {
+                showNotification('Entry fee must be at least 0.001 BNB!', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                const weiAmount = web3.utils.toWei(entryFee.toString(), 'ether');
+                const gasEstimate = await contract.methods.stakeArtifacts(stakeAmount).estimateGas({ 
+                    from: userAccount, 
+                    value: weiAmount 
+                });
+                
+                await contract.methods.stakeArtifacts(stakeAmount).send({
+                    from: userAccount,
+                    value: weiAmount,
+                    gas: Math.floor(gasEstimate * 1.2)
+                });
+                
+                showNotification('Successfully joined the quest! 🛡️', 'success');
+                loadUserData();
+                
+            } catch (error) {
+                console.error('Stake error:', error);
+                showNotification('Failed to join quest: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Claim quest rewards
+        async function claimRewards() {
+            if (!contract || !userAccount) {
+                showNotification('Please connect your wallet first!', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                const gasEstimate = await contract.methods.claimQuestRewards().estimateGas({ from: userAccount });
+                
+                await contract.methods.claimQuestRewards().send({
+                    from: userAccount,
+                    gas: Math.floor(gasEstimate * 1.2)
+                });
+                
+                showNotification('Quest rewards claimed successfully! 🏆', 'success');
+                loadUserData();
+                
+            } catch (error) {
+                console.error('Claim error:', error);
+                showNotification('Failed to claim rewards: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Show/hide tabs
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Add active class to clicked tab button
+            event.target.classList.add('active');
+            
+            // Refresh data when switching tabs
+            if (contract && userAccount) {
+                loadUserData();
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        // Show/hide loading
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            loading.style.display = show ? 'block' : 'none';
+        }
+
+        // Auto-refresh data every 30 seconds
+        setInterval(() => {
+            if (contract && userAccount) {
+                loadUserData();
+            }
+        }, 30000);
+
+        // Initialize app when page loads
+        window.addEventListener('load', init);
+
+        // Handle account changes
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', function (accounts) {
+                if (accounts.length === 0) {
+                    userAccount = null;
+                    document.getElementById('walletInfo').style.display = 'none';
+                    document.getElementById('connectWallet').style.display = 'block';
+                } else {
+                    userAccount = accounts[0];
+                    updateWalletInfo();
+                    loadUserData();
+                }
+            });
+
+            window.ethereum.on('chainChanged', function (chainId) {
+                window.location.reload();
+            });
+        }
+    </script>
+</body>
+</html>

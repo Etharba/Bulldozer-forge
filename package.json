@@ -1,0 +1,10 @@
+{
+    "name": "dragonforge-dapp",
+    "version": "1.0.0",
+    "description": "DragonForge DApp",
+    "main": "index.html",
+    "scripts": {
+      "dev": "serve .",
+      "start": "serve ."
+    }
+  }

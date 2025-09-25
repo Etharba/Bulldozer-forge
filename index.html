@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BullDozerForge - Craft Legendary Artifacts</title>
+    <title>DragonForge - Craft Legendary Artifacts</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.2.2/web3.min.js"></script>
     <style>
         * {
@@ -318,7 +318,7 @@
     
     <div class="container">
         <header class="header">
-            <h1>🐉 BullDozerForge</h1>
+            <h1>🐉 DragonForge</h1>
             <p>Craft Legendary Artifacts with Mystical Aether</p>
             
             <div class="wallet-section">
@@ -697,33 +697,43 @@
                 const marketAether = await contract.methods.marketAether().call();
 
                 // Update basic UI first
-                document.getElementById('userBalance').textContent = parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(4) + ' BNB';
-                document.getElementById('userArtifacts').textContent = artifacts;
-                document.getElementById('userAether').textContent = Number(aether).toLocaleString();
-                document.getElementById('contractBalance').textContent = parseFloat(web3.utils.fromWei(contractBalance, 'ether')).toFixed(4) + ' BNB';
-                document.getElementById('marketAether').textContent = Number(marketAether).toLocaleString();
-                document.getElementById('availableAether').value = Number(aether).toLocaleString();
+                document.getElementById('userBalance').textContent = parseFloat(web3.utils.fromWei(balance.toString(), 'ether')).toFixed(4) + ' BNB';
+                document.getElementById('userArtifacts').textContent = artifacts.toString();
+                document.getElementById('userAether').textContent = Number(aether.toString()).toLocaleString();
+                document.getElementById('contractBalance').textContent = parseFloat(web3.utils.fromWei(contractBalance.toString(), 'ether')).toFixed(4) + ' BNB';
+                document.getElementById('marketAether').textContent = Number(marketAether.toString()).toLocaleString();
+                document.getElementById('availableAether').value = Number(aether.toString()).toLocaleString();
 
                 // Try to load additional data with individual error handling
                 try {
-                    const rarityScore = await contract.methods.artifactRarityScore(userAccount).call();
-                    document.getElementById('rarityScore').textContent = rarityScore;
+                    // Try direct call without userAccount parameter first
+                    const rarityScore = await web3.eth.call({
+                        to: CONTRACT_ADDRESS,
+                        data: contract.methods.artifactRarityScore(userAccount).encodeABI()
+                    });
+                    document.getElementById('rarityScore').textContent = web3.utils.hexToNumberString(rarityScore);
                 } catch (error) {
                     console.warn('Could not load rarity score:', error);
                     document.getElementById('rarityScore').textContent = '0';
                 }
 
                 try {
-                    const stakedArtifacts = await contract.methods.stakedArtifacts(userAccount).call();
-                    document.getElementById('stakedArtifacts').textContent = stakedArtifacts;
+                    const stakedArtifacts = await web3.eth.call({
+                        to: CONTRACT_ADDRESS,
+                        data: contract.methods.stakedArtifacts(userAccount).encodeABI()
+                    });
+                    document.getElementById('stakedArtifacts').textContent = web3.utils.hexToNumberString(stakedArtifacts);
                 } catch (error) {
                     console.warn('Could not load staked artifacts:', error);
                     document.getElementById('stakedArtifacts').textContent = '0';
                 }
 
                 try {
-                    const lastCraft = await contract.methods.lastCraft(userAccount).call();
-                    const lastCraftTime = parseInt(lastCraft);
+                    const lastCraft = await web3.eth.call({
+                        to: CONTRACT_ADDRESS,
+                        data: contract.methods.lastCraft(userAccount).encodeABI()
+                    });
+                    const lastCraftTime = parseInt(web3.utils.hexToNumberString(lastCraft));
                     if (lastCraftTime > 0) {
                         const timeDiff = Math.floor((Date.now() / 1000) - lastCraftTime);
                         const hours = Math.floor(timeDiff / 3600);
@@ -747,15 +757,19 @@
 
                 try {
                     const totalGoldStaked = await contract.methods.totalGoldStaked().call();
-                    document.getElementById('prizePool').textContent = parseFloat(web3.utils.fromWei(totalGoldStaked, 'ether')).toFixed(4);
+                    document.getElementById('prizePool').textContent = parseFloat(web3.utils.fromWei(totalGoldStaked.toString(), 'ether')).toFixed(4);
                 } catch (error) {
                     console.warn('Could not load prize pool:', error);
                     document.getElementById('prizePool').textContent = '0';
                 }
 
                 try {
-                    const inQuest = await contract.methods.inSeasonalQuest(userAccount).call();
-                    document.getElementById('questStatus').textContent = inQuest ? 'Participating' : 'Not Participating';
+                    const inQuest = await web3.eth.call({
+                        to: CONTRACT_ADDRESS,
+                        data: contract.methods.inSeasonalQuest(userAccount).encodeABI()
+                    });
+                    const questStatus = web3.utils.hexToNumberString(inQuest) === '1';
+                    document.getElementById('questStatus').textContent = questStatus ? 'Participating' : 'Not Participating';
                 } catch (error) {
                     console.warn('Could not load quest status:', error);
                     document.getElementById('questStatus').textContent = 'Unknown';
@@ -827,8 +841,8 @@
             try {
                 const contractBalance = await contract.methods.getBalance().call();
                 const weiAmount = web3.utils.toWei(buyAmount.toString(), 'ether');
-                const estimate = await contract.methods.calculateAetherBuy(weiAmount, contractBalance).call();
-                document.getElementById('estimatedAether').textContent = Number(estimate).toLocaleString();
+                const estimate = await contract.methods.calculateAetherBuy(weiAmount.toString(), contractBalance.toString()).call();
+                document.getElementById('estimatedAether').textContent = Number(estimate.toString()).toLocaleString();
             } catch (error) {
                 document.getElementById('estimatedAether').textContent = '0';
             }
@@ -840,9 +854,9 @@
             
             try {
                 const aether = await contract.methods.getMyAether().call({ from: userAccount });
-                if (aether > 0) {
-                    const estimate = await contract.methods.calculateAetherSell(aether).call();
-                    const bnbEstimate = parseFloat(web3.utils.fromWei(estimate, 'ether')).toFixed(6);
+                if (BigInt(aether) > 0n) {
+                    const estimate = await contract.methods.calculateAetherSell(aether.toString()).call();
+                    const bnbEstimate = parseFloat(web3.utils.fromWei(estimate.toString(), 'ether')).toFixed(6);
                     document.getElementById('estimatedBNB').textContent = bnbEstimate + ' BNB';
                 } else {
                     document.getElementById('estimatedBNB').textContent = '0 BNB';

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DragonForge - Craft Legendary Artifacts</title>
+    <title>BullDozerForge - Craft Legendary Artifacts</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.2.2/web3.min.js"></script>
     <style>
         * {
@@ -318,7 +318,7 @@
     
     <div class="container">
         <header class="header">
-            <h1>🐉 DragonForge</h1>
+            <h1>🐉 BullDozerForge</h1>
             <p>Craft Legendary Artifacts with Mystical Aether</p>
             
             <div class="wallet-section">
@@ -882,7 +882,7 @@
                 
                 await contract.methods.craftArtifacts(referral, selectedRarity).send({
                     from: userAccount,
-                    gas: Math.floor(gasEstimate * 1.2)
+                    gas: Math.floor(Number(gasEstimate.toString()) * 1.2)
                 });
                 
                 showNotification('Artifacts crafted successfully! 🔨', 'success');
@@ -923,7 +923,7 @@
                 await contract.methods.buyAether(referral).send({
                     from: userAccount,
                     value: weiAmount,
-                    gas: Math.floor(gasEstimate * 1.2)
+                    gas: Math.floor(Number(gasEstimate.toString()) * 1.2)
                 });
                 
                 showNotification('Aether purchased successfully! 💎', 'success');
@@ -948,8 +948,9 @@
                 showLoading(true);
                 
                 const aether = await contract.methods.getMyAether().call({ from: userAccount });
-                if (aether <= 0) {
+                if (BigInt(aether.toString()) <= 0n) {
                     showNotification('You have no Aether to sell!', 'error');
+                    showLoading(false);
                     return;
                 }
                 
@@ -957,7 +958,7 @@
                 
                 await contract.methods.sellAether().send({
                     from: userAccount,
-                    gas: Math.floor(gasEstimate * 1.2)
+                    gas: Math.floor(Number(gasEstimate.toString()) * 1.2)
                 });
                 
                 showNotification('Aether sold successfully! 🏆', 'success');
@@ -995,15 +996,15 @@
                 showLoading(true);
                 
                 const weiAmount = web3.utils.toWei(entryFee.toString(), 'ether');
-                const gasEstimate = await contract.methods.stakeArtifacts(stakeAmount).estimateGas({ 
+                const gasEstimate = await contract.methods.stakeArtifacts(stakeAmount.toString()).estimateGas({ 
                     from: userAccount, 
                     value: weiAmount 
                 });
                 
-                await contract.methods.stakeArtifacts(stakeAmount).send({
+                await contract.methods.stakeArtifacts(stakeAmount.toString()).send({
                     from: userAccount,
                     value: weiAmount,
-                    gas: Math.floor(gasEstimate * 1.2)
+                    gas: Math.floor(Number(gasEstimate.toString()) * 1.2)
                 });
                 
                 showNotification('Successfully joined the quest! 🛡️', 'success');
@@ -1031,7 +1032,7 @@
                 
                 await contract.methods.claimQuestRewards().send({
                     from: userAccount,
-                    gas: Math.floor(gasEstimate * 1.2)
+                    gas: Math.floor(Number(gasEstimate.toString()) * 1.2)
                 });
                 
                 showNotification('Quest rewards claimed successfully! 🏆', 'success');

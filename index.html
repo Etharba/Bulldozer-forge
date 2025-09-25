@@ -497,29 +497,35 @@
         const CONTRACT_ADDRESS = '0x158fC67619fd0a5b736Ca5e8E8b6f176ba797217';
         const BSC_RPC = 'https://bsc-dataseed1.binance.org/';
         
-        // Contract ABI (essential functions)
+        // Contract ABI - Minimal working set
         const CONTRACT_ABI = [
-            {"inputs": [{"internalType": "address", "name": "", "type": "address"}], "name": "artifacts", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
-            {"inputs": [{"internalType": "address", "name": "", "type": "address"}], "name": "aetherBalance", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
+            // View functions that should always work
             {"inputs": [], "name": "getMyArtifacts", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
             {"inputs": [], "name": "getMyAether", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
             {"inputs": [], "name": "getBalance", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [], "name": "marketAether", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
+            
+            // Public mappings - these might cause issues
+            {"inputs": [{"internalType": "address", "name": "", "type": "address"}], "name": "artifactRarityScore", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [{"internalType": "address", "name": "", "type": "address"}], "name": "stakedArtifacts", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [{"internalType": "address", "name": "", "type": "address"}], "name": "inSeasonalQuest", "outputs": [{"internalType": "bool", "name": "", "type": "bool"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [{"internalType": "address", "name": "", "type": "address"}], "name": "lastCraft", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
+            
+            // State variables
+            {"inputs": [], "name": "seasonEndTime", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [], "name": "totalGoldStaked", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
+            {"inputs": [], "name": "initialized", "outputs": [{"internalType": "bool", "name": "", "type": "bool"}], "stateMutability": "view", "type": "function"},
+            
+            // Transaction functions
             {"inputs": [{"internalType": "address", "name": "ref", "type": "address"}, {"internalType": "uint256", "name": "rarity", "type": "uint256"}], "name": "craftArtifacts", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
             {"inputs": [], "name": "sellAether", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
             {"inputs": [{"internalType": "address", "name": "ref", "type": "address"}], "name": "buyAether", "outputs": [], "stateMutability": "payable", "type": "function"},
             {"inputs": [{"internalType": "uint256", "name": "amount", "type": "uint256"}], "name": "stakeArtifacts", "outputs": [], "stateMutability": "payable", "type": "function"},
             {"inputs": [], "name": "claimQuestRewards", "outputs": [], "stateMutability": "nonpayable", "type": "function"},
+            
+            // Calculation functions
             {"inputs": [{"internalType": "uint256", "name": "aether", "type": "uint256"}], "name": "calculateAetherSell", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
-            {"inputs": [{"internalType": "uint256", "name": "gold", "type": "uint256"}, {"internalType": "uint256", "name": "contractBalance", "type": "uint256"}], "name": "calculateAetherBuy", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
-            {"inputs": [], "name": "marketAether", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
-            {"inputs": [], "name": "seasonEndTime", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
-            {"inputs": [], "name": "totalGoldStaked", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
-            {"inputs": [{"internalType": "address", "name": "", "type": "address"}], "name": "artifactRarityScore", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
-            {"inputs": [{"internalType": "address", "name": "", "type": "address"}], "name": "stakedArtifacts", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
-            {"inputs": [{"internalType": "address", "name": "", "type": "address"}], "name": "inSeasonalQuest", "outputs": [{"internalType": "bool", "name": "", "type": "bool"}], "stateMutability": "view", "type": "function"},
-            {"inputs": [{"internalType": "address", "name": "", "type": "address"}], "name": "lastCraft", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"},
-            {"inputs": [], "name": "initialized", "outputs": [{"internalType": "bool", "name": "", "type": "bool"}], "stateMutability": "view", "type": "function"},
-            {"inputs": [{"internalType": "address", "name": "adr", "type": "address"}], "name": "getAetherSinceLastCraft", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"}
+            {"inputs": [{"internalType": "uint256", "name": "gold", "type": "uint256"}, {"internalType": "uint256", "name": "contractBalance", "type": "uint256"}], "name": "calculateAetherBuy", "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}], "stateMutability": "view", "type": "function"}
         ];
 
         // Global Variables
@@ -683,65 +689,89 @@
             if (!contract || !userAccount) return;
 
             try {
-                // Check if contract is initialized first
-                const initialized = await contract.methods.initialized().call();
-                if (!initialized) {
-                    showNotification('BullDozerForge is not yet initialized. Please wait for the ForgeMaster to open the forge.', 'error');
-                    return;
-                }
-
+                // Load basic data that should always work
                 const balance = await web3.eth.getBalance(userAccount);
                 const artifacts = await contract.methods.getMyArtifacts().call({ from: userAccount });
                 const aether = await contract.methods.getMyAether().call({ from: userAccount });
-                const rarityScore = await contract.methods.artifactRarityScore(userAccount).call();
                 const contractBalance = await contract.methods.getBalance().call();
                 const marketAether = await contract.methods.marketAether().call();
-                const stakedArtifacts = await contract.methods.stakedArtifacts(userAccount).call();
-                const lastCraft = await contract.methods.lastCraft(userAccount).call();
-                const seasonEndTime = await contract.methods.seasonEndTime().call();
-                const totalGoldStaked = await contract.methods.totalGoldStaked().call();
-                const inQuest = await contract.methods.inSeasonalQuest(userAccount).call();
 
-                // Update UI
+                // Update basic UI first
                 document.getElementById('userBalance').textContent = parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(4) + ' BNB';
                 document.getElementById('userArtifacts').textContent = artifacts;
                 document.getElementById('userAether').textContent = Number(aether).toLocaleString();
-                document.getElementById('rarityScore').textContent = rarityScore;
                 document.getElementById('contractBalance').textContent = parseFloat(web3.utils.fromWei(contractBalance, 'ether')).toFixed(4) + ' BNB';
                 document.getElementById('marketAether').textContent = Number(marketAether).toLocaleString();
-                document.getElementById('stakedArtifacts').textContent = stakedArtifacts;
                 document.getElementById('availableAether').value = Number(aether).toLocaleString();
-                document.getElementById('prizePool').textContent = parseFloat(web3.utils.fromWei(totalGoldStaked, 'ether')).toFixed(4);
-                document.getElementById('questStatus').textContent = inQuest ? 'Participating' : 'Not Participating';
-                
-                // Update last craft time
-                const lastCraftTime = parseInt(lastCraft);
-                if (lastCraftTime > 0) {
-                    const timeDiff = Math.floor((Date.now() / 1000) - lastCraftTime);
-                    const hours = Math.floor(timeDiff / 3600);
-                    const minutes = Math.floor((timeDiff % 3600) / 60);
-                    document.getElementById('lastCraft').textContent = `${hours}h ${minutes}m ago`;
-                } else {
-                    document.getElementById('lastCraft').textContent = 'Never';
+
+                // Try to load additional data with individual error handling
+                try {
+                    const rarityScore = await contract.methods.artifactRarityScore(userAccount).call();
+                    document.getElementById('rarityScore').textContent = rarityScore;
+                } catch (error) {
+                    console.warn('Could not load rarity score:', error);
+                    document.getElementById('rarityScore').textContent = '0';
                 }
 
-                // Update season timer
-                updateSeasonTimer(parseInt(seasonEndTime));
+                try {
+                    const stakedArtifacts = await contract.methods.stakedArtifacts(userAccount).call();
+                    document.getElementById('stakedArtifacts').textContent = stakedArtifacts;
+                } catch (error) {
+                    console.warn('Could not load staked artifacts:', error);
+                    document.getElementById('stakedArtifacts').textContent = '0';
+                }
+
+                try {
+                    const lastCraft = await contract.methods.lastCraft(userAccount).call();
+                    const lastCraftTime = parseInt(lastCraft);
+                    if (lastCraftTime > 0) {
+                        const timeDiff = Math.floor((Date.now() / 1000) - lastCraftTime);
+                        const hours = Math.floor(timeDiff / 3600);
+                        const minutes = Math.floor((timeDiff % 3600) / 60);
+                        document.getElementById('lastCraft').textContent = `${hours}h ${minutes}m ago`;
+                    } else {
+                        document.getElementById('lastCraft').textContent = 'Never';
+                    }
+                } catch (error) {
+                    console.warn('Could not load last craft time:', error);
+                    document.getElementById('lastCraft').textContent = 'Unknown';
+                }
+
+                try {
+                    const seasonEndTime = await contract.methods.seasonEndTime().call();
+                    updateSeasonTimer(parseInt(seasonEndTime));
+                } catch (error) {
+                    console.warn('Could not load season data:', error);
+                    document.getElementById('seasonTimer').textContent = 'Unknown';
+                }
+
+                try {
+                    const totalGoldStaked = await contract.methods.totalGoldStaked().call();
+                    document.getElementById('prizePool').textContent = parseFloat(web3.utils.fromWei(totalGoldStaked, 'ether')).toFixed(4);
+                } catch (error) {
+                    console.warn('Could not load prize pool:', error);
+                    document.getElementById('prizePool').textContent = '0';
+                }
+
+                try {
+                    const inQuest = await contract.methods.inSeasonalQuest(userAccount).call();
+                    document.getElementById('questStatus').textContent = inQuest ? 'Participating' : 'Not Participating';
+                } catch (error) {
+                    console.warn('Could not load quest status:', error);
+                    document.getElementById('questStatus').textContent = 'Unknown';
+                }
                 
                 // Update estimates
                 updateBuyEstimate();
                 updateSellEstimate();
 
             } catch (error) {
-                console.error('Error loading user data:', error);
+                console.error('Error loading core user data:', error);
                 
-                // More specific error handling
                 if (error.message.includes('revert')) {
-                    showNotification('Contract call reverted. The forge may not be initialized yet.', 'error');
-                } else if (error.message.includes('Invalid parameters')) {
-                    showNotification('Error reading contract data. Please refresh and try again.', 'error');
+                    showNotification('Contract not ready. Please try again later.', 'error');
                 } else {
-                    showNotification('Error loading data: ' + error.message, 'error');
+                    showNotification('Error loading data. Please check your connection and try again.', 'error');
                 }
                 
                 // Set default values on error
